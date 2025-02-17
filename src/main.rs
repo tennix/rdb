@@ -3,7 +3,8 @@ mod config;
 mod protocol;
 mod storage;
 
-use crate::config::{Config, load_config};
+use crate::config::load_config;
+use crate::protocol::{parse_resp, RespError};
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -12,7 +13,7 @@ use crate::commands::handle_command;
 use crate::storage::Db;
 use log::{info, debug, error};
 use tokio::net::{TcpListener, TcpStream};
-use tokio::io::{BufWriter, AsyncReadExt, AsyncWriteExt};
+use tokio::io::{BufReader, AsyncReadExt, AsyncWriteExt};
 use bytes::BytesMut;
 
 use tokio::sync::Semaphore;

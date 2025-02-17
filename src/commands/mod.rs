@@ -1,7 +1,6 @@
 use std::str::FromStr;
 use thiserror::Error;
 use crate::storage::Db;
-use crate::protocol::{RespValue, RespError};
 
 #[derive(Debug, PartialEq)]
 pub enum Command {
