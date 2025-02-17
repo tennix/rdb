@@ -146,7 +146,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_handle_command() {
-        let db: Db = Arc::new(Mutex::new(HashMap::new()));
+        let config = crate::config::StorageConfig {
+            max_memory: 1024 * 1024, // 1MB
+            persistence_enabled: false,
+        };
+        let db: Db = Arc::new(Mutex::new(Storage::new(config)));
         
         let response = handle_command("*3\r\n$3\r\nSET\r\n$4\r\nkey1\r\n$6\r\nvalue1\r\n", &db).await;
         assert_eq!(response, RespValue::SimpleString("OK".to_string()));
