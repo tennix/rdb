@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn process_client(
-    mut socket: TcpStream,
+    socket: TcpStream,
     db: Db,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut buffer = BytesMut::with_capacity(1024);
@@ -109,7 +109,17 @@ async fn handle_command(cmd: &str, db: &Db) -> String {
             }
         }
         "COMMAND" => {
-            "-ERR unknown command 'COMMAND'\r\n".to_string()
+            if args.len() == 1 {
+                // Return empty array for COMMAND
+                "*0\r\n".to_string()
+            } else {
+                "*-1\r\n".to_string()
+            }
+        }
+        "INFO" => {
+            // Return minimal server info
+            let info = "# Server\r\nredis_version:1.0.0\r\n";
+            format!("${}\r\n{}\r\n", info.len(), info)
         }
         _ => "-ERR unknown command\r\n".to_string(),
     }
