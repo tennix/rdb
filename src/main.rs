@@ -5,7 +5,7 @@ mod storage;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::commands::{Command, handle_command};
+use crate::commands::handle_command;
 use crate::storage::Db;
 use log::{info, debug, error};
 use tokio::net::{TcpListener, TcpStream};
