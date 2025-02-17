@@ -74,7 +74,7 @@ async fn handle_command(cmd: &str, db: &Db) -> String {
             }
             let mut store = db.lock().await;
             store.insert(parts[1].to_string(), parts[2].to_string());
-            "OK\r\n".to_string()
+            "+OK\r\n".to_string()
         }
         "GET" => {
             if parts.len() != 2 {
@@ -86,7 +86,10 @@ async fn handle_command(cmd: &str, db: &Db) -> String {
                 None => "$-1\r\n".to_string(),
             }
         }
-        _ => "ERROR: Unknown command\r\n".to_string(),
+        "COMMAND" => {
+            "-ERR unknown command 'COMMAND'\r\n".to_string()
+        }
+        _ => "-ERR unknown command\r\n".to_string(),
     }
 }
 
