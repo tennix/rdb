@@ -5,12 +5,10 @@ mod storage;
 
 use crate::config::{Config, load_config};
 use crate::protocol::{parse_resp, RespError};
-
-use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use crate::commands::handle_command;
-use crate::storage::Db;
+use crate::storage::{Db, Storage};
 use log::{info, debug, error};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{BufReader, AsyncReadExt, AsyncWriteExt};
