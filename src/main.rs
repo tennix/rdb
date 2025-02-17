@@ -1,6 +1,9 @@
 mod commands;
+mod config;
 mod protocol;
 mod storage;
+
+use crate::config::{Config, load_config};
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -17,13 +20,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize logger
     env_logger::init();
     
+    // Load configuration
+    let config = load_config().unwrap_or_default();
+    info!("Loaded configuration: {:?}", config);
+    
     // Create a new in-memory database
     let db: Db = Arc::new(Mutex::new(HashMap::new()));
     info!("Initialized in-memory database");
     
-    // Bind to localhost:6379 (default Redis port)
-    let listener = TcpListener::bind("127.0.0.1:6379").await?;
-    info!("Server listening on port 6379");
+    // Bind to configured address
+    let listener = TcpListener::bind(config.server.listen_addr).await?;
+    info!("Server listening on {}", config.server.listen_addr);
 
     loop {
         let (socket, _) = listener.accept().await?;
@@ -42,7 +49,7 @@ async fn process_client(
     socket: TcpStream,
     db: Db,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut buffer = BytesMut::with_capacity(1024);
+    let mut buffer = BytesMut::with_capacity(config.server.buffer_size);
     let mut writer = BufWriter::new(socket);
 
     loop {
