@@ -16,8 +16,6 @@ pub enum RespError {
     InvalidFormat,
     #[error("incomplete input")]
     Incomplete,
-    #[error("invalid length: {0}")]
-    InvalidLength(String),
 }
 
 impl RespValue {

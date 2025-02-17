@@ -68,7 +68,7 @@ async fn process_client(
     socket: TcpStream,
     db: Db,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut buffer = BytesMut::with_capacity(4096);
+    let mut buffer = BytesMut::with_capacity(config.server.buffer_size);
     let (reader, mut writer) = socket.into_split();
     let mut reader = BufReader::new(reader);
 
@@ -82,8 +82,9 @@ async fn process_client(
                 
                 // Parse RESP protocol
                 match parse_resp(command.as_ref()) {
-                    Ok((value, _)) => {
-                        let response = handle_command(&command, &db).await;
+                    Ok((_value, _)) => {
+                        let resp = handle_command(&command, &db).await;
+                        let response = resp.serialize();
                         debug!("Sending response: {}", response.trim());
                         writer.write_all(response.as_bytes()).await?;
                         writer.flush().await?;

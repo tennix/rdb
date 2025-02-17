@@ -7,7 +7,7 @@ pub enum Command {
     Set(String, String),
     Get(String),
     Info,
-    Command,
+    CmdInfo,
 }
 
 #[derive(Error, Debug)]
@@ -64,7 +64,7 @@ impl FromStr for Command {
                 Ok(Command::Get(args[1].to_string()))
             }
             "INFO" => Ok(Command::Info),
-            "COMMAND" => Ok(Command::Command),
+            "COMMAND" => Ok(Command::CmdInfo),
             cmd => Err(CommandError::UnknownCommand(cmd.to_string())),
         }
     }
@@ -89,7 +89,7 @@ pub async fn handle_command(cmd: &str, db: &Db) -> String {
                 None => "$-1\r\n".to_string(),
             }
         }
-        Command::Command => "*0\r\n".to_string(),
+        Command::CmdInfo => "*0\r\n".to_string(),
         Command::Info => {
             let info = "# Server\r\nredis_version:1.0.0\r\n";
             format!("${}\r\n{}\r\n", info.len(), info)
