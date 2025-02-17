@@ -23,7 +23,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Load configuration
     let config = load_config().unwrap_or_default();
-    info!("Loaded configuration: {:?}", config);
+    info!("Server configuration:");
+    info!("  Listen address: {}", config.server.listen_addr);
+    info!("  Max connections: {}", config.server.max_connections);
+    info!("  Buffer size: {} bytes", config.server.buffer_size);
+    info!("Storage configuration:");
+    info!("  Max memory: {} bytes", config.storage.max_memory);
+    info!("  Persistence enabled: {}", config.storage.persistence_enabled);
 
     // Create a new database and load existing data if persistence is enabled
     let mut storage = Storage::new(config.storage.clone());
