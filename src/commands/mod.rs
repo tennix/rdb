@@ -8,6 +8,8 @@ pub enum Command {
     Get(String),
     Info,
     CmdInfo,
+    Memory,
+    Save,
 }
 
 #[derive(Error, Debug)]
@@ -65,6 +67,8 @@ impl FromStr for Command {
             }
             "INFO" => Ok(Command::Info),
             "COMMAND" => Ok(Command::CmdInfo),
+            "MEMORY" => Ok(Command::Memory),
+            "SAVE" => Ok(Command::Save),
             cmd => Err(CommandError::UnknownCommand(cmd.to_string())),
         }
     }
@@ -96,8 +100,26 @@ pub async fn handle_command(cmd: &str, db: &Db) -> RespValue {
         }
         Command::CmdInfo => RespValue::Array(vec![]),
         Command::Info => {
-            let info = "# Server\r\nredis_version:1.0.0\r\n";
-            RespValue::BulkString(Some(info.to_string()))
+            let store = db.lock().await;
+            let info = format!(
+                "# Server\r\nredis_version:1.0.0\r\n\
+                # Memory\r\nused_memory:{}\r\n\
+                persistence_enabled:{}\r\n",
+                store.memory_usage(),
+                store.config.persistence_enabled
+            );
+            RespValue::BulkString(Some(info))
+        }
+        Command::Memory => {
+            let store = db.lock().await;
+            RespValue::Integer(store.memory_usage() as i64)
+        }
+        Command::Save => {
+            let store = db.lock().await;
+            match store.save_to_disk() {
+                Ok(_) => RespValue::SimpleString("OK".to_string()),
+                Err(e) => RespValue::Error(format!("ERR saving to disk: {}", e)),
+            }
         }
     }
 }

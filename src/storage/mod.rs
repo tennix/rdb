@@ -43,6 +43,27 @@ impl Storage {
     pub fn memory_usage(&self) -> usize {
         self.current_memory
     }
+
+    pub fn save_to_disk(&self) -> std::io::Result<()> {
+        if !self.config.persistence_enabled {
+            return Ok(());
+        }
+        let data = serde_json::to_string(&self.data)?;
+        std::fs::write("dump.rdb", data)
+    }
+
+    pub fn load_from_disk(&mut self) -> std::io::Result<()> {
+        if !self.config.persistence_enabled {
+            return Ok(());
+        }
+        if let Ok(data) = std::fs::read_to_string("dump.rdb") {
+            self.data = serde_json::from_str(&data)?;
+            self.current_memory = self.data.iter()
+                .map(|(k, v)| k.len() + v.len())
+                .sum();
+        }
+        Ok(())
+    }
 }
 
 pub type Db = Arc<Mutex<Storage>>;
