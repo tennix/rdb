@@ -127,9 +127,9 @@ pub async fn handle_command(cmd: &str, db: &Db) -> RespValue {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
     use std::sync::Arc;
     use tokio::sync::Mutex;
+    use crate::storage::Storage;
 
     #[test]
     fn test_command_parsing() {
