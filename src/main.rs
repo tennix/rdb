@@ -28,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Loaded configuration: {:?}", config);
     
     // Create a new in-memory database
-    let db: Db = Arc::new(Mutex::new(HashMap::new()));
+    let db: Db = Arc::new(Mutex::new(Storage::new(config.storage.clone())));
     info!("Initialized in-memory database");
     
     // Create connection limiter

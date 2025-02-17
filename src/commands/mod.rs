@@ -81,8 +81,11 @@ pub async fn handle_command(cmd: &str, db: &Db) -> RespValue {
     match command {
         Command::Set(key, value) => {
             let mut store = db.lock().await;
-            store.insert(key, value);
-            RespValue::SimpleString("OK".to_string())
+            if store.insert(key, value) {
+                RespValue::SimpleString("OK".to_string())
+            } else {
+                RespValue::Error("ERR max memory limit exceeded".to_string())
+            }
         }
         Command::Get(key) => {
             let store = db.lock().await;
