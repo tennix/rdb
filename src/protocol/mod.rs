@@ -88,7 +88,7 @@ fn parse_bulk_string(input: &str) -> Result<(RespValue, usize), RespError> {
         if length == -1 {
             return Ok((RespValue::BulkString(None), len_end + 3));
         }
-        
+
         let start = len_end + 3;
         let end = start + length as usize;
 
@@ -118,7 +118,7 @@ fn parse_array(input: &str) -> Result<(RespValue, usize), RespError> {
         if length == -1 {
             return Ok((RespValue::Array(vec![]), len_end + 3));
         }
-        
+
         let mut pos = len_end + 3;
         let mut items = Vec::new();
 
