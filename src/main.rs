@@ -62,26 +62,48 @@ async fn process_client(
 }
 
 async fn handle_command(cmd: &str, db: &Db) -> String {
-    let parts: Vec<&str> = cmd.trim().split_whitespace().collect();
-    if parts.is_empty() {
-        return "ERROR: Empty command\r\n".to_string();
+    let lines: Vec<&str> = cmd.split("\r\n").collect();
+    if lines.is_empty() {
+        return "-ERR empty command\r\n".to_string();
     }
 
-    match parts[0].to_uppercase().as_str() {
+    // Parse RESP array format
+    if !lines[0].starts_with('*') {
+        return "-ERR invalid RESP format\r\n".to_string();
+    }
+
+    let mut args = Vec::new();
+    let mut i = 1;
+    while i < lines.len() {
+        if lines[i].starts_with('$') {
+            if i + 1 < lines.len() {
+                args.push(lines[i + 1]);
+                i += 2;
+            }
+        } else {
+            i += 1;
+        }
+    }
+
+    if args.is_empty() {
+        return "-ERR empty command\r\n".to_string();
+    }
+
+    match args[0].to_uppercase().as_str() {
         "SET" => {
-            if parts.len() != 3 {
-                return "ERROR: Wrong number of arguments for SET\r\n".to_string();
+            if args.len() != 3 {
+                return "-ERR wrong number of arguments for 'set' command\r\n".to_string();
             }
             let mut store = db.lock().await;
-            store.insert(parts[1].to_string(), parts[2].to_string());
+            store.insert(args[1].to_string(), args[2].to_string());
             "+OK\r\n".to_string()
         }
         "GET" => {
-            if parts.len() != 2 {
-                return "ERROR: Wrong number of arguments for GET\r\n".to_string();
+            if args.len() != 2 {
+                return "-ERR wrong number of arguments for 'get' command\r\n".to_string();
             }
             let store = db.lock().await;
-            match store.get(parts[1]) {
+            match store.get(args[1]) {
                 Some(value) => format!("${}\r\n{}\r\n", value.len(), value),
                 None => "$-1\r\n".to_string(),
             }
@@ -102,15 +124,15 @@ mod tests {
         let db: Db = Arc::new(Mutex::new(HashMap::new()));
         
         // Test SET command
-        let response = handle_command("SET key1 value1", &db).await;
-        assert_eq!(response, "OK\r\n");
+        let response = handle_command("*3\r\n$3\r\nSET\r\n$4\r\nkey1\r\n$6\r\nvalue1\r\n", &db).await;
+        assert_eq!(response, "+OK\r\n");
         
         // Test GET command
-        let response = handle_command("GET key1", &db).await;
+        let response = handle_command("*2\r\n$3\r\nGET\r\n$4\r\nkey1\r\n", &db).await;
         assert_eq!(response, "$6\r\nvalue1\r\n");
         
         // Test GET for non-existent key
-        let response = handle_command("GET nonexistent", &db).await;
+        let response = handle_command("*2\r\n$3\r\nGET\r\n$10\r\nnonexistent\r\n", &db).await;
         assert_eq!(response, "$-1\r\n");
     }
 }
