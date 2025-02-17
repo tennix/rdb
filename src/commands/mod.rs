@@ -70,29 +70,31 @@ impl FromStr for Command {
     }
 }
 
-pub async fn handle_command(cmd: &str, db: &Db) -> String {
+use crate::protocol::RespValue;
+
+pub async fn handle_command(cmd: &str, db: &Db) -> RespValue {
     let command = match Command::from_str(cmd) {
         Ok(cmd) => cmd,
-        Err(e) => return format!("-ERR {}\r\n", e),
+        Err(e) => return RespValue::Error(e.to_string()),
     };
 
     match command {
         Command::Set(key, value) => {
             let mut store = db.lock().await;
             store.insert(key, value);
-            "+OK\r\n".to_string()
+            RespValue::SimpleString("OK".to_string())
         }
         Command::Get(key) => {
             let store = db.lock().await;
             match store.get(&key) {
-                Some(value) => format!("${}\r\n{}\r\n", value.len(), value),
-                None => "$-1\r\n".to_string(),
+                Some(value) => RespValue::BulkString(Some(value.clone())),
+                None => RespValue::BulkString(None),
             }
         }
-        Command::CmdInfo => "*0\r\n".to_string(),
+        Command::CmdInfo => RespValue::Array(vec![]),
         Command::Info => {
             let info = "# Server\r\nredis_version:1.0.0\r\n";
-            format!("${}\r\n{}\r\n", info.len(), info)
+            RespValue::BulkString(Some(info.to_string()))
         }
     }
 }

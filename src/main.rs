@@ -52,7 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             // The permit is automatically released when dropped
             let _permit = permit;
             
-            if let Err(e) = process_client(socket, db).await {
+            if let Err(e) = process_client(socket, db, &config).await {
                 error!("Error processing client: {}", e);
             }
         });
@@ -67,6 +67,7 @@ const CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
 async fn process_client(
     socket: TcpStream,
     db: Db,
+    config: &Config,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut buffer = BytesMut::with_capacity(config.server.buffer_size);
     let (reader, mut writer) = socket.into_split();
