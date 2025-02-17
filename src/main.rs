@@ -81,7 +81,7 @@ async fn process_client(
                 debug!("Received raw input: {}", command.trim());
                 
                 // Parse RESP protocol
-                match parse_resp(&command) {
+                match parse_resp(command.as_ref()) {
                     Ok((value, _)) => {
                         let response = handle_command(&command, &db).await;
                         debug!("Sending response: {}", response.trim());

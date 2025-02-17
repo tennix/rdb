@@ -21,7 +21,7 @@ pub enum RespError {
 }
 
 impl RespValue {
-    pub fn to_string(&self) -> String {
+    pub fn serialize(&self) -> String {
         match self {
             RespValue::SimpleString(s) => format!("+{}\r\n", s),
             RespValue::Error(msg) => format!("-{}\r\n", msg),
@@ -31,7 +31,7 @@ impl RespValue {
             RespValue::Array(items) => {
                 let mut result = format!("*{}\r\n", items.len());
                 for item in items {
-                    result.push_str(&item.to_string());
+                    result.push_str(&item.serialize());
                 }
                 result
             }
