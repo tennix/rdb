@@ -48,6 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let db = db.clone();
         
         // Handle each client in a separate task
+        let config = config.clone();
         tokio::spawn(async move {
             // The permit is automatically released when dropped
             let _permit = permit;
