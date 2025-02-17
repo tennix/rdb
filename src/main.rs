@@ -25,9 +25,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = load_config().unwrap_or_default();
     info!("Loaded configuration: {:?}", config);
     
-    // Create a new in-memory database
-    let db: Db = Arc::new(Mutex::new(Storage::new(config.storage.clone())));
-    info!("Initialized in-memory database");
+    // Create a new database and load existing data if persistence is enabled
+    let mut storage = Storage::new(config.storage.clone());
+    if let Err(e) = storage.load_from_disk() {
+        error!("Failed to load data from disk: {}", e);
+    }
+    let db: Db = Arc::new(Mutex::new(storage));
+    info!("Initialized database");
     
     // Create connection limiter
     let connection_limit = Arc::new(Semaphore::new(config.server.max_connections));
