@@ -1,12 +1,13 @@
-use std::collections::HashMap;
-use std::sync::Arc;
-use tokio::net::{TcpListener, TcpStream};
-use log::{info, debug, error};
-use tokio::sync::Mutex;
-use bytes::BytesMut;
-use tokio::io::{BufWriter, AsyncReadExt, AsyncWriteExt};
+mod commands;
+mod protocol;
+mod storage;
 
-type Db = Arc<Mutex<HashMap<String, String>>>;
+use crate::commands::{Command, handle_command};
+use crate::storage::Db;
+use log::{info, debug, error};
+use tokio::net::{TcpListener, TcpStream};
+use tokio::io::{BufWriter, AsyncReadExt, AsyncWriteExt};
+use bytes::BytesMut;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -61,88 +62,3 @@ async fn process_client(
     }
 }
 
-async fn handle_command(cmd: &str, db: &Db) -> String {
-    let lines: Vec<&str> = cmd.split("\r\n").collect();
-    if lines.is_empty() {
-        return "-ERR empty command\r\n".to_string();
-    }
-
-    // Parse RESP array format
-    if !lines[0].starts_with('*') {
-        return "-ERR invalid RESP format\r\n".to_string();
-    }
-
-    let mut args = Vec::new();
-    let mut i = 1;
-    while i < lines.len() {
-        if lines[i].starts_with('$') {
-            if i + 1 < lines.len() {
-                args.push(lines[i + 1]);
-                i += 2;
-            }
-        } else {
-            i += 1;
-        }
-    }
-
-    if args.is_empty() {
-        return "-ERR empty command\r\n".to_string();
-    }
-
-    match args[0].to_uppercase().as_str() {
-        "SET" => {
-            if args.len() != 3 {
-                return "-ERR wrong number of arguments for 'set' command\r\n".to_string();
-            }
-            let mut store = db.lock().await;
-            store.insert(args[1].to_string(), args[2].to_string());
-            "+OK\r\n".to_string()
-        }
-        "GET" => {
-            if args.len() != 2 {
-                return "-ERR wrong number of arguments for 'get' command\r\n".to_string();
-            }
-            let store = db.lock().await;
-            match store.get(args[1]) {
-                Some(value) => format!("${}\r\n{}\r\n", value.len(), value),
-                None => "$-1\r\n".to_string(),
-            }
-        }
-        "COMMAND" => {
-            if args.len() == 1 {
-                // Return empty array for COMMAND
-                "*0\r\n".to_string()
-            } else {
-                "*-1\r\n".to_string()
-            }
-        }
-        "INFO" => {
-            // Return minimal server info
-            let info = "# Server\r\nredis_version:1.0.0\r\n";
-            format!("${}\r\n{}\r\n", info.len(), info)
-        }
-        _ => "-ERR unknown command\r\n".to_string(),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_handle_command() {
-        let db: Db = Arc::new(Mutex::new(HashMap::new()));
-        
-        // Test SET command
-        let response = handle_command("*3\r\n$3\r\nSET\r\n$4\r\nkey1\r\n$6\r\nvalue1\r\n", &db).await;
-        assert_eq!(response, "+OK\r\n");
-        
-        // Test GET command
-        let response = handle_command("*2\r\n$3\r\nGET\r\n$4\r\nkey1\r\n", &db).await;
-        assert_eq!(response, "$6\r\nvalue1\r\n");
-        
-        // Test GET for non-existent key
-        let response = handle_command("*2\r\n$3\r\nGET\r\n$10\r\nnonexistent\r\n", &db).await;
-        assert_eq!(response, "$-1\r\n");
-    }
-}
