@@ -44,6 +44,10 @@ impl Storage {
         self.current_memory
     }
 
+    pub fn is_persistence_enabled(&self) -> bool {
+        self.config.persistence_enabled
+    }
+
     pub fn save_to_disk(&self) -> std::io::Result<()> {
         if !self.config.persistence_enabled {
             return Ok(());

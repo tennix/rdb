@@ -106,7 +106,7 @@ pub async fn handle_command(cmd: &str, db: &Db) -> RespValue {
                 # Memory\r\nused_memory:{}\r\n\
                 persistence_enabled:{}\r\n",
                 store.memory_usage(),
-                store.config.persistence_enabled
+                store.is_persistence_enabled()
             );
             RespValue::BulkString(Some(info))
         }
