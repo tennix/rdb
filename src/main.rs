@@ -3,7 +3,7 @@ mod config;
 mod protocol;
 mod storage;
 
-use crate::config::load_config;
+use crate::config::{Config, load_config};
 use crate::protocol::{parse_resp, RespError};
 
 use std::collections::HashMap;
