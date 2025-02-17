@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load configuration
     let config = load_config().unwrap_or_default();
     info!("Loaded configuration: {:?}", config);
-    
+
     // Create a new database and load existing data if persistence is enabled
     let mut storage = Storage::new(config.storage.clone());
     if let Err(e) = storage.load_from_disk() {
@@ -46,9 +46,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let permit = connection_limit.clone().acquire_owned().await?;
         let (socket, addr) = listener.accept().await?;
         info!("New connection from {}", addr);
-        
+
         let db = db.clone();
-        
+
         // Handle each client in a separate task
         let config = config.clone();
         tokio::spawn(async move {
