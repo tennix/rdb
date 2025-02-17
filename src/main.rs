@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::net::{TcpListener, TcpStream};
+use log::{info, debug, error};
 use tokio::sync::Mutex;
 use bytes::BytesMut;
 use tokio::io::{BufWriter, AsyncReadExt, AsyncWriteExt};
@@ -9,12 +10,16 @@ type Db = Arc<Mutex<HashMap<String, String>>>;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize logger
+    env_logger::init();
+    
     // Create a new in-memory database
     let db: Db = Arc::new(Mutex::new(HashMap::new()));
+    info!("Initialized in-memory database");
     
     // Bind to localhost:6379 (default Redis port)
     let listener = TcpListener::bind("127.0.0.1:6379").await?;
-    println!("Server listening on port 6379");
+    info!("Server listening on port 6379");
 
     loop {
         let (socket, _) = listener.accept().await?;
@@ -23,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Handle each client in a separate task
         tokio::spawn(async move {
             if let Err(e) = process_client(socket, db).await {
-                eprintln!("Error processing client: {}", e);
+                error!("Error processing client: {}", e);
             }
         });
     }
@@ -44,7 +49,9 @@ async fn process_client(
         }
 
         let command = String::from_utf8_lossy(&buffer[..]);
+        debug!("Received command: {}", command.trim());
         let response = handle_command(&command, &db).await;
+        debug!("Sending response: {}", response.trim());
         
         // Send response back to client
         writer.write_all(response.as_bytes()).await?;
