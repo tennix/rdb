@@ -20,7 +20,7 @@ impl Storage {
 
     pub fn insert(&mut self, key: String, value: String) -> bool {
         let entry_size = key.len() + value.len();
-        
+
         // Check if we would exceed memory limit
         if self.current_memory + entry_size > self.config.max_memory {
             return false;

@@ -20,7 +20,7 @@ use tokio::sync::Semaphore;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize logger
     env_logger::init();
-    
+
     // Load configuration
     let config = load_config().unwrap_or_default();
     info!("Loaded configuration: {:?}", config);
@@ -32,11 +32,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let db: Db = Arc::new(Mutex::new(storage));
     info!("Initialized database");
-    
+
     // Create connection limiter
     let connection_limit = Arc::new(Semaphore::new(config.server.max_connections));
     info!("Connection limit set to {}", config.server.max_connections);
-    
+
     // Bind to configured address
     let listener = TcpListener::bind(config.server.listen_addr).await?;
     info!("Server listening on {}", config.server.listen_addr);
@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tokio::spawn(async move {
             // The permit is automatically released when dropped
             let _permit = permit;
-            
+
             if let Err(e) = process_client(socket, db, &config).await {
                 error!("Error processing client: {}", e);
             }
@@ -83,7 +83,7 @@ async fn process_client(
             Ok(Ok(_)) => {
                 let command = String::from_utf8_lossy(&buffer);
                 debug!("Received raw input: {}", command.trim());
-                
+
                 // Parse RESP protocol
                 match parse_resp(command.as_ref()) {
                     Ok((_value, _)) => {
@@ -100,7 +100,7 @@ async fn process_client(
                         writer.flush().await?;
                     }
                 }
-                
+
                 buffer.clear();
             }
             Ok(Err(e)) => return Err(e.into()),

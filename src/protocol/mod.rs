@@ -54,10 +54,7 @@ pub fn parse_resp(input: &str) -> Result<(RespValue, usize), RespError> {
 
 fn parse_simple_string(input: &str) -> Result<(RespValue, usize), RespError> {
     if let Some(end) = input[1..].find("\r\n") {
-        Ok((
-            RespValue::SimpleString(input[1..=end].to_string()),
-            end + 3,
-        ))
+        Ok((RespValue::SimpleString(input[1..=end].to_string()), end + 3))
     } else {
         Err(RespError::Incomplete)
     }
@@ -65,10 +62,7 @@ fn parse_simple_string(input: &str) -> Result<(RespValue, usize), RespError> {
 
 fn parse_error(input: &str) -> Result<(RespValue, usize), RespError> {
     if let Some(end) = input[1..].find("\r\n") {
-        Ok((
-            RespValue::Error(input[1..=end].to_string()),
-            end + 3,
-        ))
+        Ok((RespValue::Error(input[1..=end].to_string()), end + 3))
     } else {
         Err(RespError::Incomplete)
     }
@@ -76,7 +70,8 @@ fn parse_error(input: &str) -> Result<(RespValue, usize), RespError> {
 
 fn parse_integer(input: &str) -> Result<(RespValue, usize), RespError> {
     if let Some(end) = input[1..].find("\r\n") {
-        let num = input[1..=end].parse::<i64>()
+        let num = input[1..=end]
+            .parse::<i64>()
             .map_err(|_| RespError::InvalidFormat)?;
         Ok((RespValue::Integer(num), end + 3))
     } else {
@@ -86,24 +81,25 @@ fn parse_integer(input: &str) -> Result<(RespValue, usize), RespError> {
 
 fn parse_bulk_string(input: &str) -> Result<(RespValue, usize), RespError> {
     if let Some(len_end) = input[1..].find("\r\n") {
-        let length = input[1..=len_end].parse::<i64>()
+        let length = input[1..=len_end]
+            .parse::<i64>()
             .map_err(|_| RespError::InvalidFormat)?;
-        
+
         if length == -1 {
             return Ok((RespValue::BulkString(None), len_end + 3));
         }
         
         let start = len_end + 3;
         let end = start + length as usize;
-        
+
         if input.len() < end + 2 {
             return Err(RespError::Incomplete);
         }
-        
+
         if &input[end..end + 2] != "\r\n" {
             return Err(RespError::InvalidFormat);
         }
-        
+
         Ok((
             RespValue::BulkString(Some(input[start..end].to_string())),
             end + 2,
@@ -115,26 +111,27 @@ fn parse_bulk_string(input: &str) -> Result<(RespValue, usize), RespError> {
 
 fn parse_array(input: &str) -> Result<(RespValue, usize), RespError> {
     if let Some(len_end) = input[1..].find("\r\n") {
-        let length = input[1..=len_end].parse::<i64>()
+        let length = input[1..=len_end]
+            .parse::<i64>()
             .map_err(|_| RespError::InvalidFormat)?;
-        
+
         if length == -1 {
             return Ok((RespValue::Array(vec![]), len_end + 3));
         }
         
         let mut pos = len_end + 3;
         let mut items = Vec::new();
-        
+
         for _ in 0..length {
             if pos >= input.len() {
                 return Err(RespError::Incomplete);
             }
-            
+
             let (value, len) = parse_resp(&input[pos..])?;
             items.push(value);
             pos += len;
         }
-        
+
         Ok((RespValue::Array(items), pos))
     } else {
         Err(RespError::Incomplete)

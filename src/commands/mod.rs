@@ -151,14 +151,14 @@ mod tests {
             persistence_enabled: false,
         };
         let db: Db = Arc::new(Mutex::new(Storage::new(config)));
-        
+
         let response =
             handle_command("*3\r\n$3\r\nSET\r\n$4\r\nkey1\r\n$6\r\nvalue1\r\n", &db).await;
         assert_eq!(response, RespValue::SimpleString("OK".to_string()));
-        
+
         let response = handle_command("*2\r\n$3\r\nGET\r\n$4\r\nkey1\r\n", &db).await;
         assert_eq!(response, RespValue::BulkString(Some("value1".to_string())));
-        
+
         let response = handle_command("*2\r\n$3\r\nGET\r\n$10\r\nnonexistent\r\n", &db).await;
         assert_eq!(response, RespValue::BulkString(None));
     }
