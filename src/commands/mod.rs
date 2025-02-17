@@ -1,6 +1,6 @@
+use crate::storage::Db;
 use std::str::FromStr;
 use thiserror::Error;
-use crate::storage::Db;
 
 #[derive(Debug, PartialEq)]
 pub enum Command {
@@ -127,9 +127,9 @@ pub async fn handle_command(cmd: &str, db: &Db) -> RespValue {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::storage::Storage;
     use std::sync::Arc;
     use tokio::sync::Mutex;
-    use crate::storage::Storage;
 
     #[test]
     fn test_command_parsing() {
@@ -152,7 +152,8 @@ mod tests {
         };
         let db: Db = Arc::new(Mutex::new(Storage::new(config)));
         
-        let response = handle_command("*3\r\n$3\r\nSET\r\n$4\r\nkey1\r\n$6\r\nvalue1\r\n", &db).await;
+        let response =
+            handle_command("*3\r\n$3\r\nSET\r\n$4\r\nkey1\r\n$6\r\nvalue1\r\n", &db).await;
         assert_eq!(response, RespValue::SimpleString("OK".to_string()));
         
         let response = handle_command("*2\r\n$3\r\nGET\r\n$4\r\nkey1\r\n", &db).await;

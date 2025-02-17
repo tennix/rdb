@@ -1,7 +1,7 @@
+use crate::config::StorageConfig;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::config::StorageConfig;
 
 pub struct Storage {
     data: HashMap<String, String>,
@@ -62,11 +62,7 @@ impl Storage {
         }
         if let Ok(data) = std::fs::read_to_string("dump.rdb") {
             self.data = serde_json::from_str(&data)?;
-            self.current_memory = self
-                .data
-                .iter()
-                .map(|(k, v)| k.len() + v.len())
-                .sum();
+            self.current_memory = self.data.iter().map(|(k, v)| k.len() + v.len()).sum();
         }
         Ok(())
     }

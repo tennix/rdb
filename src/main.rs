@@ -3,16 +3,16 @@ mod config;
 mod protocol;
 mod storage;
 
-use crate::config::{Config, load_config};
-use crate::protocol::{parse_resp, RespError};
-use std::sync::Arc;
-use tokio::sync::Mutex;
 use crate::commands::handle_command;
+use crate::config::{load_config, Config};
+use crate::protocol::{parse_resp, RespError};
 use crate::storage::{Db, Storage};
-use log::{info, debug, error};
-use tokio::net::{TcpListener, TcpStream};
-use tokio::io::{AsyncReadExt, AsyncWriteExt, BufReader};
 use bytes::BytesMut;
+use log::{debug, error, info};
+use std::sync::Arc;
+use tokio::io::{AsyncReadExt, AsyncWriteExt, BufReader};
+use tokio::net::{TcpListener, TcpStream};
+use tokio::sync::Mutex;
 
 use tokio::sync::Semaphore;
 
