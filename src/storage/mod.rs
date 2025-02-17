@@ -62,7 +62,9 @@ impl Storage {
         }
         if let Ok(data) = std::fs::read_to_string("dump.rdb") {
             self.data = serde_json::from_str(&data)?;
-            self.current_memory = self.data.iter()
+            self.current_memory = self
+                .data
+                .iter()
                 .map(|(k, v)| k.len() + v.len())
                 .sum();
         }

@@ -11,7 +11,7 @@ use crate::commands::handle_command;
 use crate::storage::{Db, Storage};
 use log::{info, debug, error};
 use tokio::net::{TcpListener, TcpStream};
-use tokio::io::{BufReader, AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncReadExt, AsyncWriteExt, BufReader};
 use bytes::BytesMut;
 
 use tokio::sync::Semaphore;
