@@ -21,7 +21,7 @@ A lightweight Redis-compatible server implementation written in Rust using async
 ### Installation
 
 ```bash
-git clone https://github.com/yourusername/rdb.git
+git clone https://github.com/tennix/rdb.git
 cd rdb
 cargo build --release
 ```
@@ -52,10 +52,12 @@ redis-cli
 ### Example
 
 ```
+> INFO
 > SET mykey "Hello World"
 OK
 > GET mykey
 "Hello World"
+> SAVE
 ```
 
 ## Testing
@@ -72,4 +74,4 @@ This project is open source and available under the MIT License.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+The code is mostly written by AI. I want to investigate how far can AI go. So please DO NOT contribute to this repo at the moment.

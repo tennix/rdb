@@ -6,6 +6,6 @@
   },
   "storage": {
     "max_memory": 1073741824,
-    "persistence_enabled": false
+    "persistence_enabled": true
   }
 }
